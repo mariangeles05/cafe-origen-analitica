@@ -128,3 +128,32 @@ Result: id 10 (4 x 42000 = 168000)
 Both traces match the program: 985000 total, 89545.45 average and `id: 10` as the largest sale. As a cross-check, Medellín 356000 + Bogotá 276000 + Cali 185000 + Pereira 168000 = 985000.
 
 **Status:** all functions done, tested and traced by hand.
+
+## Micro-challenge 3:
+
+## array methods, grouping and rankings
+
+New rule from my tech lead: every method version must give exactly the same result as the loop it replaces, and I have to prove it (`src/verificar.js`). Each function answers some of the five questions from the session: what do I loop over, what do I filter, what do I transform, what do I accumulate, how do I group.
+
+| Function | Loop over | Filter | Transform | Accumulate | Group |
+|----------|-----------|--------|-----------|------------|-------|
+| `totalVendidoM` | all sales | none | sale to value, inside the `reduce` | sum, starts at `0` | none |
+| `unidadesVendidasM` | all sales | none | none | sum of `cantidad`, starts at `0` | none |
+| `ventasPorCiudadM` | all sales | `filter`: normalized city equals the search | `map`: sale to value | `reduce` sum, starts at `0` | none |
+| `totalPorCiudad` | all sales | none | city name cleaned (`nombreCiudad`) | sum of values per city | by city, in an object `{}` |
+| `unidadesPorProducto` | all sales | none | product name trimmed | sum of `cantidad` per product | by product, in an object `{}` |
+| `topProductosPorValor` | all sales | none | `Object.entries` + `map` to `{ producto, valor }` | sum of values per product | by product, in an object `{}` |
+
+`topProductosPorValor` also sorts with `sort((a, b) => b.valor - a.valor)` and keeps the first `k` with `slice(0, k)`. Sorting is done on the new array from `Object.entries`, so `ventas` keeps its original order. Sorting `ventas` itself would need a copy first: `[...ventas].sort(...)`.
+
+### Results with the sample
+
+- `totalPorCiudad`: Medellín 356000, Bogotá 276000, Cali 185000, Pereira 168000 (four groups, total 985000). `"Bogotá"` and `"Bogotá "` fall in the same group.
+- `unidadesPorProducto`: Origen Huila 500 g 7, Origen Nariño 250 g 6, Origen Sierra 500 g 5, Prensa francesa 2, Molino manual 1 (total 21).
+- `topProductosPorValor(ventas, 3)`: Origen Huila 500 g 294000, Origen Sierra 500 g 225000, Prensa francesa 190000.
+
+### Proof: loops vs methods
+
+`node src/verificar.js` runs each loop version and its method version on the same data (full array, one element and `[]`, plus three spellings of a city). All 12 pairs print `OK`, so the methods give exactly the same result as the loops they replace. I also checked that `totalPorCiudad` returns four groups, that `topProductosPorValor(ventas, 3)` is sorted from highest to lowest, and that `ventas` keeps its original order.
+
+**Status:** micro-challenge 3 done.

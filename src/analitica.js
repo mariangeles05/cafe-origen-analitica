@@ -69,11 +69,67 @@ const ventasPorCiudad = (ventas, ciudad) => {
   return total;
 };
 
+const totalVendidoM = (ventas) => {
+  return ventas.reduce((acumulado, venta) => acumulado + valorVenta(venta), 0);
+};
+
+const unidadesVendidasM = (ventas) => {
+  return ventas.reduce((acumulado, venta) => acumulado + venta.cantidad, 0);
+};
+
+const ventasPorCiudadM = (ventas, ciudad) => {
+  const buscada = normalizar(ciudad);
+
+  return ventas
+    .filter((venta) => normalizar(venta.ciudad) === buscada)
+    .map((venta) => valorVenta(venta))
+    .reduce((acumulado, valor) => acumulado + valor, 0);
+};
+
+const nombreCiudad = (texto) => {
+  const limpio = normalizar(texto);
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+};
+
+const totalPorCiudad = (ventas) => {
+  return ventas.reduce((grupos, venta) => {
+    const ciudad = nombreCiudad(venta.ciudad);
+    grupos[ciudad] = (grupos[ciudad] || 0) + valorVenta(venta);
+    return grupos;
+  }, {});
+};
+const unidadesPorProducto = (ventas) => {
+  return ventas.reduce((grupos, venta) => {
+    const producto = venta.producto.trim();
+    grupos[producto] = (grupos[producto] || 0) + venta.cantidad;
+    return grupos;
+  }, {});
+};
+
+const topProductosPorValor = (ventas, k) => {
+  const valorPorProducto = ventas.reduce((grupos, venta) => {
+    const producto = venta.producto.trim();
+    grupos[producto] = (grupos[producto] || 0) + valorVenta(venta);
+    return grupos;
+  }, {});
+
+  return Object.entries(valorPorProducto)
+    .map(([producto, valor]) => ({ producto, valor }))
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, k);
+};
+
 module.exports = {
   valorVenta,
   totalVendido,
   unidadesVendidas,
   ventaMayor,
   ticketPromedio,
-  ventasPorCiudad
+  ventasPorCiudad,
+  totalVendidoM,
+  unidadesVendidasM,
+  ventasPorCiudadM,
+  totalPorCiudad,
+  unidadesPorProducto,
+  topProductosPorValor
 };

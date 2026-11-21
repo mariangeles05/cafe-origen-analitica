@@ -16,6 +16,7 @@ You must have Node.js installed. From the project folder, run:
 ```bash
 node src/explorar.js
 node src/analitica.js
+node src/verificar.js
 ```
 
 ## Findings
@@ -31,3 +32,8 @@ The data contains issues that aren't immediately apparent: a city name written i
 - `ventaMayor(ventas)`: the largest sale, as a full record (`null` if there are none).
 - `ticketPromedio(ventas)`: average value per purchase, ignoring zero-quantity sales.
 - `ventasPorCiudad(ventas, ciudad)`: total sold in a city, ignoring case and extra spaces.
+- `src/verificar.js`: proves that each method version gives the same result as its loop version.
+- `totalVendidoM`, `unidadesVendidasM`, `ventasPorCiudadM`: the same indicators written with `map`, `filter` and `reduce`.
+- `totalPorCiudad(ventas)`: total sold per city, as an object.
+- `unidadesPorProducto(ventas)`: units sold per product, as an object.
+- `topProductosPorValor(ventas, k)`: the `k` products that generated the most money, from highest to lowest.
