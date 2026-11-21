@@ -157,3 +157,25 @@ New rule from my tech lead: every method version must give exactly the same resu
 `node src/verificar.js` runs each loop version and its method version on the same data (full array, one element and `[]`, plus three spellings of a city). All 12 pairs print `OK`, so the methods give exactly the same result as the loops they replace. I also checked that `totalPorCiudad` returns four groups, that `topProductosPorValor(ventas, 3)` is sorted from highest to lowest, and that `ventas` keeps its original order.
 
 **Status:** micro-challenge 3 done.
+
+## Micro-challenge 4: v0.1 report and debugging
+
+The manager reported two errors from a preliminary version. I reproduced that version with small `node -e` scripts and ran it next to mine with the same input.
+
+### Error 1: "Bogotá" shown twice
+
+- **Symptom:** the sales-by-city section listed Bogotá two times.
+- **Input:** two sales with `ciudad: "Bogotá"` and `ciudad: "Bogotá "` (trailing space).
+- **Hypothesis:** the preliminary version groups by the raw city text, so the two spellings become two keys.
+- **Test:** printed the keys with `JSON.stringify`, which showed `"Bogotá"` and `"Bogotá "`.
+- **Cause:** grouping without normalizing the key.
+- **Fix:** `totalPorCiudad` builds the key with `nombreCiudad` (`trim()`, `toLowerCase()`, then capitalize). My version returns one group, `Bogotá: 121000`, so it no longer has the error.
+
+### Error 2: average ticket `NaN` on a day without sales
+
+- **Symptom:** the average ticket showed `NaN` when filtering a day with no sales.
+- **Input:** `ventasDelDia(ventas, "2026-09-07")`, which returns `[]`.
+- **Hypothesis:** the preliminary version divides by `ventas.length`, which is 0 for an empty day.
+- **Test:** printed `0 / 0`, which gives `NaN`, next to `ticketPromedio` on the same empty day.
+- **Cause:** dividing the total by a count of zero.
+- **Fix:** `ticketPromedio` counts only purchases with `cantidad > 0` and returns `0` when that count is zero, before dividing. My version returns `0`, and the report shows zeros plus "Sin ventas registradas este día."

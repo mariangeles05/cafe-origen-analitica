@@ -118,6 +118,10 @@ const topProductosPorValor = (ventas, k) => {
     .sort((a, b) => b.valor - a.valor)
     .slice(0, k);
 };
+const ventasDelDia = (ventas, fecha) => {
+  const buscada = fecha.trim();
+  return ventas.filter((venta) => venta.fecha === buscada);
+};
 
 module.exports = {
   valorVenta,
@@ -131,5 +135,6 @@ module.exports = {
   ventasPorCiudadM,
   totalPorCiudad,
   unidadesPorProducto,
-  topProductosPorValor
+  topProductosPorValor,
+  ventasDelDia
 };

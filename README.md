@@ -1,39 +1,46 @@
-# Cafe Origen Analitica
+# cafe-origen-analitica
 
-An initial look at the sales data for Café Origen. Before performing any calculations, the goal is to understand the data: what each record represents, the data type of each field, and any underlying issues.
+A small sales analytics engine for Café Origen, built with plain JavaScript and Node.js. It reads a sample of the sales history and prints a business report in the console, so the manager can run the analysis without opening the code.
 
-## Project Contents
+Current version: **v0.1**
 
-- `src/datos.js`: The 12 sales records in the sample, in their original format.
-- `src/explorar.js`: Displays the total number of records, the first and last entries, and the complete dataset.
-- `src/analitica.js`: Checks for edge cases (regarding cities, quantities, and customers).
-- `bitacora.md`: A data dictionary and a log of the decisions made throughout the process.
+## How to run it
 
-## How to Run
+You need [Node.js](https://nodejs.org) installed. Open a terminal in the project folder and run:
 
-You must have Node.js installed. From the project folder, run:
+```bash
+node src/reporte.js
+```
+
+That prints the full report. To look at a different day, change the dates in the last two lines of `src/reporte.js`, for example `resumenDelDia("2026-09-04")`. Dates use the format `YYYY-MM-DD`.
+
+Other scripts:
 
 ```bash
 node src/explorar.js
-node src/analitica.js
+node src/pruebas.js
 node src/verificar.js
 ```
 
-## Findings
+## What questions it answers
 
-The data contains issues that aren't immediately apparent: a city name written in lowercase, a sale with a quantity of zero, and duplicate customer entries.
+- How much was sold in total, and how many units?
+- What was the largest sale?
+- What is the average ticket (spend per purchase)?
+- How much was sold in each city?
+- How many units were sold of each product?
+- Which three products generated the most money?
+- What happened on a given day, including days with no sales?
 
+## What's inside
 
-## Indicators
+- `src/datos.js`: the 12 sales of the sample, exactly as they came.
+- `src/analitica.js`: the calculation functions (loop versions and array-method versions).
+- `src/reporte.js`: the report the manager runs.
+- `src/verificar.js`: proves each method version gives the same result as its loop version.
+- `src/explorar.js` and `src/pruebas.js`: data exploration and edge-case tests.
+- `bitacora.md`: data dictionary, edge cases, decisions and debugging notes.
 
-- `valorVenta(venta)`: value of one sale (quantity × price).
-- `totalVendido(ventas)`: total sold.
-- `unidadesVendidas(ventas)`: total units sold.
-- `ventaMayor(ventas)`: the largest sale, as a full record (`null` if there are none).
-- `ticketPromedio(ventas)`: average value per purchase, ignoring zero-quantity sales.
-- `ventasPorCiudad(ventas, ciudad)`: total sold in a city, ignoring case and extra spaces.
-- `src/verificar.js`: proves that each method version gives the same result as its loop version.
-- `totalVendidoM`, `unidadesVendidasM`, `ventasPorCiudadM`: the same indicators written with `map`, `filter` and `reduce`.
-- `totalPorCiudad(ventas)`: total sold per city, as an object.
-- `unidadesPorProducto(ventas)`: units sold per product, as an object.
-- `topProductosPorValor(ventas, k)`: the `k` products that generated the most money, from highest to lowest.
+## Data notes
+
+The data is never modified. Known issues (a city in lowercase, a sale with quantity zero) are handled in the code and explained in `bitacora.md`. A sale with quantity zero does not count as a purchase, and a day without sales shows zeros instead of an error.
