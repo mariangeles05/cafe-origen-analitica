@@ -1,4 +1,4 @@
-# Café Origen Analytics
+# Cafe Origen Analitica
 
 An initial look at the sales data for Café Origen. Before performing any calculations, the goal is to understand the data: what each record represents, the data type of each field, and any underlying issues.
 
@@ -21,3 +21,13 @@ node src/analitica.js
 ## Findings
 
 The data contains issues that aren't immediately apparent: a city name written in lowercase, a sale with a quantity of zero, and duplicate customer entries.
+
+
+## Indicators
+
+- `valorVenta(venta)`: value of one sale (quantity × price).
+- `totalVendido(ventas)`: total sold.
+- `unidadesVendidas(ventas)`: total units sold.
+- `ventaMayor(ventas)`: the largest sale, as a full record (`null` if there are none).
+- `ticketPromedio(ventas)`: average value per purchase, ignoring zero-quantity sales.
+- `ventasPorCiudad(ventas, ciudad)`: total sold in a city, ignoring case and extra spaces.
