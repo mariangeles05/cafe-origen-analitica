@@ -1,23 +1,23 @@
-# cafe-origen-analitica
+# Café Origen Analytics
 
-Primer acercamiento a las ventas de Café Origen. Antes de calcular nada, el objetivo es entender los datos: qué representa cada registro, de qué tipo es cada campo y qué problemas traen.
+An initial look at the sales data for Café Origen. Before performing any calculations, the goal is to understand the data: what each record represents, the data type of each field, and any underlying issues.
 
-## Qué hay en el proyecto
+## Project Contents
 
-- `src/datos.js`: las 12 ventas de la muestra, tal como vienen.
-- `src/explorar.js`: muestra cuántos registros hay, el primero, el último y la tabla completa.
-- `src/analitica.js`: comprobaciones sobre los casos borde (ciudades, cantidades, clientes).
-- `bitacora.md`: el diccionario de datos y las decisiones que fui tomando.
+- `src/datos.js`: The 12 sales records in the sample, in their original format.
+- `src/explorar.js`: Displays the total number of records, the first and last entries, and the complete dataset.
+- `src/analitica.js`: Checks for edge cases (regarding cities, quantities, and customers).
+- `bitacora.md`: A data dictionary and a log of the decisions made throughout the process.
 
-## Cómo correrlo
+## How to Run
 
-Necesitas Node.js instalado. Desde la carpeta del proyecto:
+You must have Node.js installed. From the project folder, run:
 
 ```bash
 node src/explorar.js
 node src/analitica.js
 ```
 
-## Lo que encontré
+## Findings
 
-Los datos traen cosas que no se ven a simple vista: una ciudad escrita en minúscula, una venta con cantidad cero y clientes que se repiten. 
+The data contains issues that aren't immediately apparent: a city name written in lowercase, a sale with a quantity of zero, and duplicate customer entries.
