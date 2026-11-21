@@ -1,38 +1,37 @@
-# Bitácora: Café Origen
+# Log: Café Origen
 
-## Qué estoy mirando
+## What I’m looking at
 
-Cada registro es una línea de venta: un cliente compró un producto en una ciudad, un día, y quedó anotada la cantidad y el precio. La muestra trae 12 registros, del 1 al 6 de septiembre de 2026.
+Each record represents a sales transaction: a customer purchased a product in a specific city on a given day, with the quantity and price recorded. The sample contains 12 records, covering the period from September 1 to September 6, 2026.
 
-Los pasé a `src/datos.js` tal cual vienen, errores incluidos. Si los corregía al copiarlos, ya no iba a saber qué traían los datos originales.
+I have transferred them to `src/datos.js` exactly as they appear—errors and all. If I had corrected them during the copy process, I would no longer know what the original data contained.
 
-## Diccionario de datos
+## Data Dictionary
 
-| Propiedad | Tipo | Qué significa |
+| Property | Type | Meaning |
 |-----------|------|---------------|
-| `id` | number | Identificador único de la venta, del 1 al 12. |
-| `fecha` | string | Día de la venta en formato `AAAA-MM-DD`. Es texto, no un `Date`. |
-| `cliente` | string | Código del cliente (`C01` a `C08`). |
-| `producto` | string | Nombre del producto, con el gramaje dentro del texto. |
-| `ciudad` | string | Ciudad donde se hizo la venta. |
-| `cantidad` | number | Unidades vendidas en ese registro. |
-| `precio` | number | Valor en pesos colombianos. Parece ser por unidad, porque cada producto repite siempre el mismo valor. |
+| `id` | number | Unique identifier for the sale (1 through 12). |
+| `fecha` | string | Date of the sale in `YYYY-MM-DD` format. Stored as text, not as a `Date` object. |
+| `cliente` | string | Customer code (`C01` through `C08`). |
+| `producto` | string | Product name, including the weight/size specification. |
+| `ciudad` | string | City where the sale took place. |
+| `cantidad` | number | Number of units sold in the transaction. |
+| `precio` | number | Value in Colombian pesos. It appears to be a per-unit price, as each product consistently shows the same value. |
 
-## Casos borde detectados
+## Edge cases identified
 
-**1. Ciudad escrita distinto (`id: 5`).** Aparece `medellín` en minúscula y en los demás registros `Medellín`. Para un computador son dos ciudades distintas, y un reporte por ciudad las separaría.
-*Decisión:* normalizar el texto antes de agrupar (quitar espacios y unificar mayúsculas). En `datos.js` lo dejo como está, la corrección va en la limpieza.
+**1. Inconsistent city spelling (`id: 5`).** The entry appears as `medellín` (lowercase), whereas other records use `Medellín` (capitalized). To a computer, these are two distinct cities, which would cause them to be separated in a city-based report.
+*Decision:* Normalize the text before grouping (remove extra spaces and standardize capitalization). I will leave the data as-is in `datos.js`; the correction will be handled during the data-cleaning phase.
 
-**2. Cantidad en cero (`id: 8`).** Hay una venta con `cantidad: 0`. Puede ser un error de digitación o una venta anulada.
-*Decisión:* no la cuento como venta en los totales de unidades ni de ingresos. El registro se queda en los datos y queda anotado aquí, y lo confirmo con Café Origen.
+**2. Zero quantity (`id: 8`).** There is a sale with `cantidad: 0`. This could be a data-entry error or a cancelled transaction. *Decision:* I am not counting this as a sale in the total unit or revenue figures. The record remains in the dataset and is noted here; I will confirm this with Café Origen.
 
-**3. Clientes repetidos.** C01 aparece 3 veces, y C02 y C03 aparecen 2. No es un error, son clientes que vuelven a comprar. Pero si cuento registros pensando que son clientes, me inflo el número.
-*Decisión:* para saber cuántos clientes hay, cuento códigos únicos, no registros.
+**3. Repeat customers.** C01 appears 3 times, while C02 and C03 appear 2 times each. This is not an error; these are repeat customers. However, if I count the records as if they were individual customers, the total count will be inflated.
+*Decision:* To determine the number of customers, I will count unique codes rather than individual records.
 
-**4. El precio no dice si es unitario o total.** No viene aclarado.
-*Decisión:* trabajo con la hipótesis de que es por unidad, porque el mismo producto siempre trae el mismo valor. El total de una venta sería `cantidad * precio`. Queda pendiente de confirmar.
+**4. It is unclear whether the price is per unit or a total.** This is not specified.
+*Decision:* I am proceeding under the assumption that it is a unit price, as the same product always carries the same value. The total for a sale would be `quantity * price`. This remains to be confirmed.
 
-## Decisiones generales
+## General decisions
 
-- Los datos originales no se modifican.
-- Toda limpieza se hace en el código de análisis y se anota aquí.
+- The original data will not be modified.
+- All data cleaning is performed within the analysis code and documented here.
