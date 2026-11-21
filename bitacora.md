@@ -179,3 +179,50 @@ The manager reported two errors from a preliminary version. I reproduced that ve
 - **Test:** printed `0 / 0`, which gives `NaN`, next to `ticketPromedio` on the same empty day.
 - **Cause:** dividing the total by a count of zero.
 - **Fix:** `ticketPromedio` counts only purchases with `cantidad > 0` and returns `0` when that count is zero, before dividing. My version returns `0`, and the report shows zeros plus "Sin ventas registradas este día."
+
+## Micro-challenge 5: how much does each report cost?
+
+I built `generarVentas(n)` to create sales of any size, and instrumented versions of three functions that count operations (one per element visited and one per comparison made). Before measuring anything, this is what I expect.
+
+### Prediction (written before measuring)
+
+Each of the three functions loops over the sales once and does a fixed amount of work per element, with no nested loops. So if `n` is multiplied by 10, I expect the operations to be multiplied by about 10 in all three. A function that only looks at the first sale should not grow at all.
+
+| Function | Expected operations | If `n` x 10 |
+|----------|---------------------|-------------|
+| `totalVendido` | `n` (one visit per sale) | x 10 |
+| `ventaMayor` | `2n` (a visit and a comparison per sale) | x 10 |
+| `totalPorCiudad` | `2n` (a visit and a dictionary lookup per sale) | x 10 |
+| `primeraVenta` | 1, always | x 1 (does not grow) |
+
+Assumption: looking up a key in an object costs the same no matter how many keys it has. Here there are only four cities, so it should not matter.
+
+### Results
+
+`node src/medir.js` gave these operation counts:
+
+| n | totalVendido | ventaMayor | totalPorCiudad | primeraVenta |
+|---|---|---|---|---|
+| 100 | 100 | 200 | 200 | 1 |
+| 1000 | 1000 | 2000 | 2000 | 1 |
+| 10000 | 10000 | 20000 | 20000 | 1 |
+| 100000 | 100000 | 200000 | 200000 | 1 |
+
+Every time `n` grew 10 times, the three loop functions did exactly 10 times more operations, and `primeraVenta` stayed at 1.
+
+### Prediction vs. results
+
+My prediction was right in every case: x10 for the three loop functions and no growth for `primeraVenta`. The counts matched the expected `n`, `2n`, `2n` and 1 exactly.
+
+### Big O classification
+
+| Function | Big O | Why |
+|----------|-------|-----|
+| `totalVendido` | O(n) | One `for...of` over the sales with a fixed amount of work per sale. It made `n` operations, and x10 data meant x10 operations. |
+| `ventaMayor` | O(n) | One loop, with a visit and a comparison per sale: `2n` operations. The factor 2 is dropped in Big O, and the growth was still x10. |
+| `totalPorCiudad` | O(n) | One loop, with a visit and a dictionary lookup per sale: `2n` operations, x10 when `n` grew x10. This assumes a lookup in an object costs the same however many keys it has (here only 4 cities). |
+| `primeraVenta` | O(1) | It only reads position 0. It made 1 operation with 100 sales and with 100,000. |
+
+None of the four is O(n²). That would need a loop inside a loop (for example, comparing every sale with every other sale), and the growth factor would be 100 when `n` grows 10 times, not 10.
+
+Limit of this measurement: I counted visits and comparisons, not seconds. It shows how the work grows, not how fast a computer runs it.

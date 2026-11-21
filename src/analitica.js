@@ -122,6 +122,60 @@ const ventasDelDia = (ventas, fecha) => {
   const buscada = fecha.trim();
   return ventas.filter((venta) => venta.fecha === buscada);
 };
+const contarVisita = (contador) => {
+  contador.operaciones = contador.operaciones + 1;
+};
+
+const contarComparacion = (contador) => {
+  contador.operaciones = contador.operaciones + 1;
+};
+
+const totalVendidoConteo = (ventas, contador) => {
+  let total = 0;
+
+  for (const venta of ventas) {
+    contarVisita(contador);
+    total = total + valorVenta(venta);
+  }
+
+  return total;
+};
+
+const ventaMayorConteo = (ventas, contador) => {
+  let mayor = null;
+
+  for (const venta of ventas) {
+    contarVisita(contador);
+    contarComparacion(contador);
+    if (mayor === null || valorVenta(venta) > valorVenta(mayor)) {
+      mayor = venta;
+    }
+  }
+
+  return mayor;
+};
+
+const totalPorCiudadConteo = (ventas, contador) => {
+  const grupos = {};
+
+  for (const venta of ventas) {
+    contarVisita(contador);
+    const ciudad = nombreCiudad(venta.ciudad);
+    contarComparacion(contador);
+    grupos[ciudad] = (grupos[ciudad] || 0) + valorVenta(venta);
+  }
+
+  return grupos;
+};
+
+const primeraVenta = (ventas, contador) => {
+  if (ventas.length === 0) {
+    return null;
+  }
+
+  contarVisita(contador);
+  return ventas[0];
+};
 
 module.exports = {
   valorVenta,
@@ -136,5 +190,9 @@ module.exports = {
   totalPorCiudad,
   unidadesPorProducto,
   topProductosPorValor,
-  ventasDelDia
+  ventasDelDia,
+  totalVendidoConteo,
+  ventaMayorConteo,
+  totalPorCiudadConteo,
+  primeraVenta
 };

@@ -40,6 +40,8 @@ node src/verificar.js
 - `src/verificar.js`: proves each method version gives the same result as its loop version.
 - `src/explorar.js` and `src/pruebas.js`: data exploration and edge-case tests.
 - `bitacora.md`: data dictionary, edge cases, decisions and debugging notes.
+- `src/generador.js`: builds sales histories of any size for testing.
+- `src/medir.js`: counts operations at different sizes to show how the work grows.
 
 ## Data notes
 
