@@ -226,3 +226,41 @@ My prediction was right in every case: x10 for the three loop functions and no g
 None of the four is O(n²). That would need a loop inside a loop (for example, comparing every sale with every other sale), and the growth factor would be 100 when `n` grows 10 times, not 10.
 
 Limit of this measurement: I counted visits and comparisons, not seconds. It shows how the work grows, not how fast a computer runs it.
+
+## Micro-challenge 6: a report that got slow
+
+A colleague added `clientesRecurrentes(ventas)`, which lists customers who bought more than once. It works on the 12 sample sales (it returns C01, C02 and C03), but it took minutes on the yearly history. I kept it exactly as written and analyzed it.
+
+### Trace with 5 sales
+
+Customers by position: `0: C01`, `1: C02`, `2: C01`, `3: C03`, `4: C02`. The comparison counted is `ventas[i].cliente === ventas[j].cliente`.
+
+| i | j | compared | equal? | action | recurrentes |
+|---|---|----------|--------|--------|-------------|
+| 0 | 1 | C01 vs C02 | no | | [] |
+| 0 | 2 | C01 vs C01 | yes | not in list, add C01 | [C01] |
+| 0 | 3 | C01 vs C03 | no | | [C01] |
+| 0 | 4 | C01 vs C02 | no | | [C01] |
+| 1 | 2 | C02 vs C01 | no | | [C01] |
+| 1 | 3 | C02 vs C03 | no | | [C01] |
+| 1 | 4 | C02 vs C02 | yes | not in list, add C02 | [C01, C02] |
+| 2 | 3 | C01 vs C03 | no | | [C01, C02] |
+| 2 | 4 | C01 vs C02 | no | | [C01, C02] |
+| 3 | 4 | C03 vs C02 | no | | [C01, C02] |
+| 4 | none | the inner loop does not run | | | [C01, C02] |
+
+**Comparisons with 5 sales: 10.**
+
+### Generalization
+
+For each `i` the inner loop runs `n - 1 - i` times, so the total is `(n-1) + (n-2) + ... + 1 + 0 = n(n-1)/2`.
+
+| n | comparisons |
+|---|-------------|
+| 5 | 10 |
+| 12 | 66 |
+| 1,000 | 499,500 |
+| 2,000 | 1,999,000 |
+| 16,000 | 127,992,000 |
+
+The `n²` term dominates, so this is O(n²). Doubling `n` multiplies the comparisons by about 4: 499,500 with 1,000 sales and 1,999,000 with 2,000.
