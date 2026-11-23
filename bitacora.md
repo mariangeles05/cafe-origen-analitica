@@ -479,3 +479,61 @@ The original grows with the square of the data: 10× more sales took about 115×
 ### Time vs. memory
 
 The brute force stores almost nothing besides its result. The new versions remember every distinct customer (the Set of seen customers, or the whole Map), so memory grows from the size of the result to O(c), with `c` the number of distinct customers, which in the worst case is O(n). That is the price: a bit of memory spent to avoid searching again, which turns O(n²) time into O(n). Set and Map cost the same; I prefer the Map version when I also need the number of purchases per customer.
+
+
+## Micro-challenge 10: Gift card combos and frequencies
+
+**Context.** For the year-end campaign: suggest two different products whose prices add up to a gift card of $87,000, find the star product of each city, and find the first customer who bought only once.
+
+### Gift card combo: brute force
+
+`comboRegaloFuerzaBruta(catalogo, valor)` tries every pair of products (`j` always after `i`, so no pair repeats and no product is used twice) and returns the first pair that adds up to the value, or `null`.
+
+- **Time:** O(n²), because of a loop inside a loop over the catalog.
+- **Space:** O(1).
+- **Check:** 87,000 → Origen Huila 500 g + Origen Sierra 500 g; 61,000 → Origen Nariño 250 g + Taza de cerámica; 1,000 → `null`.
+
+
+### Gift card combo: optimized with a Map
+
+`comboRegalo(catalogo, valor)` goes through the catalog once. For each product it computes the complement (`valor - precio`) and asks the Map whether a product with that price was already seen. If so, it returns both products; if not, it stores the current price and continues. It returns `null` if no pair exists. Checking the Map before storing the current product also prevents using the same product twice.
+
+**Tests.** 87,000 → Origen Huila 500 g + Origen Sierra 500 g; 61,000 → Origen Nariño 250 g + Taza de cerámica; 1,000 → `null`; empty catalog → `null`. The results match the brute force.
+
+**Trace for 87,000.**
+
+| Step | Product | Price | Complement (87,000 − price) | In the Map? | Map afterwards |
+|------|---------|-------|-----------------------------|-------------|----------------|
+| 1 | Origen Nariño 250 g | 26,000 | 61,000 | No | 26,000 |
+| 2 | Origen Huila 500 g | 42,000 | 45,000 | No | 26,000, 42,000 |
+| 3 | Origen Sierra 500 g | 45,000 | 42,000 | Yes | (returns the pair) |
+
+It stops at the third product and returns Origen Huila 500 g + Origen Sierra 500 g.
+
+
+### Star product per city
+
+`productoEstrellaPorCiudad(ventas)` uses a Map of Maps: the outer one has the city (normalized with `nombreCiudad`, so "medellín" and "Medellín" count together) and the inner one counts how many times each product appears in that city's sales. Then it picks the most frequent product of each city. It counts sales, not units, so a sale with quantity 0 still counts as an appearance.
+
+- **Tie rule:** if two products appear the same number of times, the one that appeared first in that city's sales wins (the comparison uses a strict `>`).
+- **Empty array:** returns `{}`.
+- **Time:** O(n), one pass over the sales plus one pass over the counters, which are at most `n`.
+- **Space:** O(k × p), with `k` cities and `p` products; at most O(n).
+
+### First unique customer
+
+`primerClienteUnico(ventas)` makes two passes: the first counts purchases per customer with `comprasPorCliente`, and the second goes through the sales in order and returns the first customer whose count is exactly 1. It returns `null` if the array is empty or every customer repeats. With the Day 1 data it returns `C04`.
+
+- **Time:** O(n), two passes added together (n + n).
+- **Space:** O(c), with `c` distinct customers.
+
+
+### Complexity summary
+
+| Function | Time | Space | Justification |
+|----------|------|-------|---------------|
+| `comboRegalo` | O(n) | O(n) | One pass over the catalog; each product does one Map lookup and one insertion, both constant time. The Map can hold up to `n` prices. |
+| `productoEstrellaPorCiudad` | O(n) | O(k × p) | One pass over the sales to count, then one pass over the counters (at most `n`). Memory is one counter per city and product pair. |
+| `primerClienteUnico` | O(n) | O(c) | Two passes added together (n + n), which simplifies to O(n). The Map holds one entry per distinct customer. |
+
+The brute force `comboRegaloFuerzaBruta` is O(n²) in time and O(1) in space. The Map version trades O(n) memory for linear time. All three new functions assume that a lookup or insertion in a Map takes constant time.

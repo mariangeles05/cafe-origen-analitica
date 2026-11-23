@@ -250,6 +250,51 @@ const clientesRecurrentesMap = (ventas) => {
   return recurrentes;
 };
 
+const productoEstrellaPorCiudad = (ventas) => {
+  const conteos = new Map();
+
+  for (const venta of ventas) {
+    const ciudad = nombreCiudad(venta.ciudad);
+
+    if (!conteos.has(ciudad)) {
+      conteos.set(ciudad, new Map());
+    }
+
+    const productos = conteos.get(ciudad);
+    productos.set(venta.producto, (productos.get(venta.producto) || 0) + 1);
+  }
+
+  const estrellas = {};
+
+  for (const [ciudad, productos] of conteos) {
+    let mejor = null;
+    let maximo = 0;
+
+    for (const [producto, veces] of productos) {
+      if (veces > maximo) {
+        mejor = producto;
+        maximo = veces;
+      }
+    }
+
+    estrellas[ciudad] = mejor;
+  }
+
+  return estrellas;
+};
+
+const primerClienteUnico = (ventas) => {
+  const compras = comprasPorCliente(ventas);
+
+  for (const venta of ventas) {
+    if (compras.get(venta.cliente) === 1) {
+      return venta.cliente;
+    }
+  }
+
+  return null;
+};
+
 module.exports = {
   valorVenta,
   totalVendido,
@@ -273,5 +318,7 @@ module.exports = {
   totalCiudadUnaPasada,
   clientesRecurrentesSet,
   comprasPorCliente,
-  clientesRecurrentesMap
+  clientesRecurrentesMap,
+  productoEstrellaPorCiudad,
+  primerClienteUnico
 };
