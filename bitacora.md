@@ -413,3 +413,69 @@ The chain would be a fine choice for small data or a one-off script, where readi
 | Samuel Castaño | La proyección de 2 horas depende de los datos de prueba. ¿Cambiaría con otros datos? | Sí, los datos tienen cerca de un cliente distinto por cada 3 ventas. Con otra cantidad el tiempo cambia, aunque seguiría creciendo con n². Lo agregué al documento. |
 
 **What changed after the review.** Added a line about data shape to the projection notes in `RENDIMIENTO.md`.
+
+
+## Micro-challenge 9: Recurring customers in linear time
+
+**Goal.** The marketplace needs every report to answer in under 1 second with 100,000 sales. The current `clientesRecurrentes` takes minutes.
+
+### 1. Understand
+
+- **Input:** an array of sales; each sale has a `cliente`.
+- **Output:** a list of the customers who appear in more than one sale, each one listed once.
+- **Constraints:** under 1 second with 100,000 sales; the order of the result does not matter; the input must not be modified.
+
+### 2. Examples and edge cases
+
+| Input | Expected output |
+|-------|-----------------|
+| `[]` | `[]` |
+| One sale | `[]` |
+| C1, C2, C3 (nobody repeats) | `[]` |
+| C1, C2, C1 | `["C1"]` |
+| C1, C1, C1 | `["C1"]` (listed once, not twice) |
+| C1, C2, C1, C2, C3 | `["C1", "C2"]` |
+
+### 3. Brute force
+
+For each sale, compare it with all the sales after it; if the customer matches, add it to the result unless `includes` finds it already there.
+
+- **Time:** O(n²), worst case O(n³) because of `includes`.
+- **Space:** O(n).
+- **Measured:** 424 ms at 10,000 sales and 71 s at 100,000.
+
+### 4. Optimization idea
+
+The brute force searches for the same customer again and again. Instead, remember what has already been seen:
+
+- **Set version:** one Set for customers already seen and another for recurring ones. If a customer is already in "seen", it goes into "recurring". `has` and `add` take constant time.
+- **Map version:** one Map with the number of purchases per customer, then keep those with a count greater than 1.
+
+Both walk through the sales once, so the time drops to O(n). The price is memory: O(c), with `c` distinct customers.
+
+
+### 5. Implement
+
+I added three functions to `analitica.js`:
+
+- `clientesRecurrentesSet(ventas)`: one Set of customers already seen and another of recurring ones, in one pass.
+- `comprasPorCliente(ventas)`: a Map with the number of purchases per customer.
+- `clientesRecurrentesMap(ventas)`: keeps the customers whose count in that Map is greater than 1.
+
+### 6. Test and measure
+
+`src/verificarRecurrentes.js` compares the sorted results of the three versions. With the Day 1 data (3 customers) and with 5,000 generated sales (about 1,300 customers) all of them match.
+
+`src/medirRecurrentes.js` gives the median of 7 runs (the original ran once at 10,000 and 5 times at 1,000):
+
+| Sales | Original (ms) | Set (ms) | Map (ms) |
+|-------|---------------|----------|----------|
+| 1,000 | 7.7 | 0.30 | 0.30 |
+| 10,000 | 890 | 1.27 | 1.38 |
+| 100,000 | about 71,000 (measured in micro-challenge 6) | 18.3 | 18.6 |
+
+The original grows with the square of the data: 10× more sales took about 115× more time. Set and Map grow roughly in line with the data: 10× more sales took between 4× and 15× more time, with small deviations from the cache and the first runs. At 100,000 sales both finish in about 18 ms, far under the 1-second limit and thousands of times faster than the original.
+
+### Time vs. memory
+
+The brute force stores almost nothing besides its result. The new versions remember every distinct customer (the Set of seen customers, or the whole Map), so memory grows from the size of the result to O(c), with `c` the number of distinct customers, which in the worst case is O(n). That is the price: a bit of memory spent to avoid searching again, which turns O(n²) time into O(n). Set and Map cost the same; I prefer the Map version when I also need the number of purchases per customer.

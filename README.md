@@ -42,8 +42,9 @@ node src/verificar.js
 - `bitacora.md`: data dictionary, edge cases, decisions and debugging notes.
 - `src/generador.js`: builds sales histories of any size for testing.
 - `src/medir.js`: counts operations at different sizes to show how the work grows.
-- `src/medirTodo.js`: measures time and operations of every engine function with 10,000 sales.
 - `RENDIMIENTO.md`: performance report with complexity, projection to 1,000,000 sales, risks and an optimization plan.
+- `src/verificarRecurrentes.js`: checks that the three recurring-customers versions return the same customers.
+- `src/medirRecurrentes.js`: times the three versions with 1,000, 10,000 and 100,000 sales.
 
 ## Data notes
 

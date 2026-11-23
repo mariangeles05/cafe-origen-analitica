@@ -213,6 +213,43 @@ const totalCiudadUnaPasada = (ventas, ciudad) => {
   return total;
 };
 
+const clientesRecurrentesSet = (ventas) => {
+  const vistos = new Set();
+  const recurrentes = new Set();
+
+  for (const venta of ventas) {
+    if (vistos.has(venta.cliente)) {
+      recurrentes.add(venta.cliente);
+    } else {
+      vistos.add(venta.cliente);
+    }
+  }
+
+  return [...recurrentes];
+};
+
+const comprasPorCliente = (ventas) => {
+  const compras = new Map();
+
+  for (const venta of ventas) {
+    compras.set(venta.cliente, (compras.get(venta.cliente) || 0) + 1);
+  }
+
+  return compras;
+};
+
+const clientesRecurrentesMap = (ventas) => {
+  const recurrentes = [];
+
+  for (const [cliente, cantidad] of comprasPorCliente(ventas)) {
+    if (cantidad > 1) {
+      recurrentes.push(cliente);
+    }
+  }
+
+  return recurrentes;
+};
+
 module.exports = {
   valorVenta,
   totalVendido,
@@ -233,5 +270,8 @@ module.exports = {
   primeraVenta,
   clientesRecurrentes,
   totalCiudadCadena,
-  totalCiudadUnaPasada
+  totalCiudadUnaPasada,
+  clientesRecurrentesSet,
+  comprasPorCliente,
+  clientesRecurrentesMap
 };
