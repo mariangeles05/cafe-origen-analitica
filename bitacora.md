@@ -604,3 +604,40 @@ Result: Filtros de papel x100 + Origen Huila 1 kg, 97,000.
 | `mejorSemanaBruta` | O(n × k) | O(1) | About `n` blocks, and each one adds `k` days. |
 | `mejorSemana` | O(n) | O(1) | One window of `k` additions plus `n − k` steps of one addition and one subtraction; it never adds a block again. |
 | `parMasCercano` | O(n log n) | O(n) | Sorting the copy costs O(n log n) and dominates; the two-pointer pass is O(n) because each step moves one pointer and they cross at most `n` times. The copy takes O(n) space. If the prices were already sorted, only the O(n) pass would remain. |
+
+
+## Micro-challenge 12: Launch v1.0
+
+**What I did.** I rewrote `reporte.js` to build the whole report with the optimized functions and to accept a number of sales (`node src/reporte.js 100000`), added the new sections (recurring customers, star product per city, gift combo, coupon customer and best week), measured the report against the original algorithms, and updated `RENDIMIENTO.md` and `README.md`.
+
+**Results.** With 100,000 sales the report runs in under a second. Compared with the original algorithms it went from 1,159.6 ms to 15.1 ms at 10,000 sales and from about 68 s to 86 ms at 100,000 sales.
+
+## Week summary
+
+| Micro-challenge | What I built | Key lesson |
+|-----------------|--------------|------------|
+| 1. First roast | Repository, data dictionary and edge cases. | Look at the data before writing code: city spelling, quantity 0 and repeated customers shape every later decision. |
+| 2. The numbers of the day | Totals, largest sale, average ticket and city totals with loops. | Decide what an empty array returns before it causes a bug. |
+| 3. From loop to method | The same indicators with `map`, `filter` and `reduce`, plus grouping and rankings. | Verify that the new version gives the same result as the old one. |
+| 4. Analytics v0.1 | The console report and the debugging of two reported bugs. | Reproduce a bug before fixing it. |
+| 5. How much does each report cost? | Sales generator and operation counting. | Measure growth, not one time. |
+| 6. The report that became slow | Diagnosis of `clientesRecurrentes` as O(n²) with real timings. | Ten times more data meant a hundred times more time. |
+| 7. Time, memory and chains | Space complexity and the decision between a method chain and one pass. | Chains read well but copy data; one pass is cheaper in memory. |
+| 8. Analytics v0.2 | `RENDIMIENTO.md` with complexities, projection, risks and an optimization plan. | The evidence pointed at one function, so that is where to optimize. |
+| 9. Recurring customers in linear time | `clientesRecurrentesSet` and `clientesRecurrentesMap`. | Remember what was already seen instead of searching again. |
+| 10. Gift combos and frequencies | `comboRegalo`, `productoEstrellaPorCiudad` and `primerClienteUnico`. | A Map answers "have I seen this?" in constant time. |
+| 11. The best streak and the budget | `mejorSemana` and `parMasCercano`. | Reuse work between neighbors (window) or use order (two pointers). |
+| 12. Analytics v1.0 | The final report, the v0.1 vs v1.0 comparison and the product documentation. | Documented numbers make the improvement something others can check. |
+
+## Resolution strategy per optimization
+
+| Problem | Brute force | Strategy applied | Result |
+|---------|-------------|------------------|--------|
+| Recurring customers | Nested loops with `includes`, O(n²) | Set of customers seen plus a Set of recurring ones (or a Map of purchase counts). | O(n); 71 s to about 18 ms with 100,000 sales. |
+| Gift card combo | Try every pair, O(m²) | Map of prices seen: look up the complement (`value − price`). | O(m) in one pass. |
+| Star product per city | Count by searching again for each product | Frequency counting with a Map of Maps. | O(n) in one pass. |
+| First unique customer | Search the whole history for each customer, O(n²) | Two passes: count with a Map, then find the first with a count of 1. | O(n). |
+| Best week | Add every block of `k` days, O(d × k) | Sliding window: add the day that enters and subtract the one that leaves. | O(d); the same time for any `k`. |
+| Closest pair under a budget | Try every pair, O(m²) | Sort, then two pointers from the ends. | O(m log m), dominated by the sort. |
+
+In every case the method was the same: understand the problem, try examples and edge cases, write the brute force and measure its cost, find the work that repeats, store or reuse it, and check that the new version gives the same results.

@@ -295,6 +295,32 @@ const primerClienteUnico = (ventas) => {
   return null;
 };
 
+const totalesDiarios = (ventas) => {
+  const porDia = new Map();
+
+  for (const venta of ventas) {
+    const dia = venta.fecha.trim();
+    porDia.set(dia, (porDia.get(dia) || 0) + valorVenta(venta));
+  }
+
+  const fechas = [...porDia.keys()].sort();
+
+  if (fechas.length === 0) {
+    return { inicio: null, totales: [] };
+  }
+
+  const totales = [];
+  const actual = new Date(fechas[0] + "T00:00:00Z");
+  const ultimo = new Date(fechas[fechas.length - 1] + "T00:00:00Z");
+
+  while (actual <= ultimo) {
+    totales.push(porDia.get(actual.toISOString().slice(0, 10)) || 0);
+    actual.setUTCDate(actual.getUTCDate() + 1);
+  }
+
+  return { inicio: fechas[0], totales };
+};
+
 module.exports = {
   valorVenta,
   totalVendido,
@@ -320,5 +346,6 @@ module.exports = {
   comprasPorCliente,
   clientesRecurrentesMap,
   productoEstrellaPorCiudad,
-  primerClienteUnico
+  primerClienteUnico,
+  totalesDiarios
 };

@@ -1,6 +1,6 @@
 # Performance report: Café Origen analytics engine
 
-Version: v0.2 (in progress)
+Version: v1.0
 
 This document describes how the functions of the analytics engine behave in time and memory, with measurements instead of opinions. It is written for any developer who needs to connect the engine to the marketplace platform.
 
@@ -34,6 +34,17 @@ The complexity of each function comes from reading its code. The measurements ar
 | `totalCiudadCadena` | Total sold in a city, chaining `map`, `filter`, `map` and `reduce`. | O(n) | O(n) | 4 passes (at most `4n`, which simplifies to `n`); 3 intermediate arrays plus `n` copied objects. | 1.22 ms |
 | `totalCiudadUnaPasada` | Total sold in a city in a single loop. | O(n) | O(1) | 1 pass and no intermediate arrays. | 0.54 ms |
 | `primeraVenta` | First sale (a control function). | O(1) | O(1) | It only reads position 0, so it does not depend on `n`. | 1 op; about 0.0004 ms |
+| `totalesDiarios` | Total sold per day, filling days without sales with 0. | O(n + d log d) | O(d) | One pass over the sales to group by date in a Map, then a sort of the `d` distinct dates and a pass over the day range. | 0.81 ms |
+| `clientesRecurrentesSet` | Customers who bought more than once, with two Sets. | O(n) | O(c) | One pass; `has` and `add` on a Set take constant time. One Set holds every distinct customer. | 1.36 ms |
+| `comprasPorCliente` | Number of purchases per customer, as a Map. | O(n) | O(c) | One pass with one Map lookup and update per sale. | 1.22 ms |
+| `clientesRecurrentesMap` | Customers who bought more than once, from the Map. | O(n) | O(c) | One pass to build the Map plus one pass over its `c` entries (`c <= n`), which simplifies to O(n). | 1.57 ms |
+| `productoEstrellaPorCiudad` | Most frequent product of each city. | O(n) | O(k × p) | One pass to count in a Map of Maps, then one pass over the counters (at most `n`). | 3.55 ms |
+| `primerClienteUnico` | First customer who bought only once. | O(n) | O(c) | Two passes added together (n + n); one Map of purchases per customer. | 0.60 ms |
+| `comboRegaloFuerzaBruta` | Two products that add up to a value, trying every pair. | O(m²) | O(1) | A loop inside a loop over the catalog (`m` products, not sales). | 0.0014 ms |
+| `comboRegalo` | Two products that add up to a value, with a Map. | O(m) | O(m) | One pass over the catalog; one Map lookup and insertion per product. | 0.0027 ms |
+| `mejorSemanaBruta` | Best block of `k` days, adding every block from zero. | O(d × k) | O(1) | About `d` blocks and each one adds `k` days. | 0.0127 ms |
+| `mejorSemana` | Best block of `k` days, with a sliding window. | O(d) | O(1) | The first window plus one addition and one subtraction per step. | 0.0045 ms |
+| `parMasCercano` | Two products closest to a budget without exceeding it. | O(m log m) | O(m) | Sorting a copy of the catalog dominates; the two-pointer pass is O(m). | 0.0036 ms |
 
 Helper functions (`normalizar`, `nombreCiudad`, `contarVisita`, `contarComparacion`) are O(1) in time and space. The instrumented versions (`...Conteo`) have the same complexity as the functions they copy. `generarVentas` is a testing tool, not part of the engine.
 
@@ -134,3 +145,23 @@ Both walks are independent, so the costs add up instead of multiplying.
 The cost of the change is memory: the dictionary holds one entry per distinct customer. That is a small price compared with the time saved, and the current version already needs O(n) space for its result list.
 
 **How it will be verified.** The new version must return the same customers as the current one on the 12-sale dataset and on generated data, and `src/tiempo.js` should show the time growing in proportion to `n` instead of quadratically.
+
+
+## Update v1.0
+
+**Optimization plan result.** The plan for `clientesRecurrentes` was implemented as `clientesRecurrentesSet` and `clientesRecurrentesMap`. At 100,000 sales they take about 18 ms instead of about 71 s.
+
+### v0.1 vs v1.0
+
+The same final report (all its sections) was built twice, measuring only the time to build it, not to generate the data: once with the original algorithms (`clientesRecurrentes`, `comboRegaloFuerzaBruta`, `mejorSemanaBruta`) and once with the optimized ones (`clientesRecurrentesSet`, `comboRegalo`, `mejorSemana`). "v0.1" here means the original algorithms, because the first v0.1 report did not have the recurring customers section. v1.0 is the median of 5 runs; v0.1 is the median of 3 runs at 10,000 sales and a single run at 100,000.
+
+| Sales | v0.1 | v1.0 | Improvement |
+|-------|------|------|-------------|
+| 10,000 | 1,159.6 ms | 15.1 ms | 77× |
+| 100,000 | 68,475.2 ms (about 68 s) | 86.0 ms | 797× |
+
+With 10 times more sales, v0.1 took about 59 times longer (a quadratic cost), while v1.0 took about 6 times longer (close to linear). The first cold run of `node src/reporte.js 100000` printed 234.6 ms; the 86 ms above is the median of warm runs.
+
+### Complexity of the final report
+
+No function in the final report is O(n²) in the number of sales. Every report section is O(n), except sorting the few distinct dates and the catalog (`d log d`, `m log m`). `comboRegaloFuerzaBruta` is O(m²), but it only appears in the v0.1 comparison, and it works over the 8 catalog products, not over the sales.
