@@ -315,3 +315,86 @@ These are the times I measured and estimated:
 | 1,000,000 | about 2 hours (estimated) |
 
 This can be fixed by changing how the report is calculated, so that it goes through the sales only once. 
+
+## Micro-challenge 7: space complexity
+
+### Both versions give the same result
+
+With `generarVentas(10000)`, `totalCiudadCadena` and `totalCiudadUnaPasada` returned exactly the same value (compared with `===`) for the four cities, for a badly written city (`" medellín "`) and for a city that does not exist (0). The four cities add up to `totalVendido`, so no sale was lost.
+
+### Passes, new arrays and Big O
+
+**Chain (`totalCiudadCadena`).**
+
+| Stage | Loops over | Creates |
+|-------|------------|---------|
+| `map` (normalize) | the `n` sales | an array of `n` new objects (a copy of each sale) |
+| `filter` | the `n` copied sales | an array of the `m` sales of that city (`m <= n`) |
+| `map` (value) | the `m` filtered sales | an array of `m` numbers |
+| `reduce` | the `m` values | nothing, it returns one number |
+
+It makes **4 passes** (all 4 are full passes in the worst case, when `m = n`) and creates **3 intermediate arrays**, plus `n` copied objects in the first `map`.
+
+**One pass (`totalCiudadUnaPasada`).** It makes **1 pass** and creates **0 intermediate arrays**. The extra memory is the variable `total`, the searched city and a temporary string per turn that is discarded.
+
+| Version | Passes | New arrays | Time | Space |
+|---------|--------|------------|------|-------|
+| Chain | 4 | 3 (and `n` copied objects) | O(n) | O(n) |
+| One pass | 1 | 0 | O(n) | O(1) |
+
+### Why both are O(n) in time
+
+The chain visits elements about `4n` times (`n + n + m + m`, with `m <= n`), while the one-pass loop visits `n`. Big O describes how the work grows when `n` grows, not the exact count, so two simplification rules apply:
+
+1. **Constant factors are dropped.** If `n` grows 10 times, `4n` becomes `40n`, which is also 10 times more. Both versions grow at the same pace, so `O(4n)` is written `O(n)`.
+2. **Steps in sequence add up, they do not multiply.** Four loops one after another give `n + n + m + m <= 4n`. The work would multiply (`n x n = n²`) only if the loops were nested, like in `clientesRecurrentes`.
+
+Smaller terms are dropped too: a fixed cost such as normalizing the searched city once (`4n + 5`) becomes `n`.
+
+The constant still matters in practice: the chain makes about 4 times more visits and also creates arrays and copies objects, so it is slower and uses more memory. But the number of operations grows at the same pace as in the one-pass version, so both are O(n) in time.
+
+### Measured time of both versions
+
+I measured both versions with `generarVentas(n)`, taking the median of 7 runs for each size (a single run was too noisy).
+
+| n | chain (ms) | one pass (ms) | chain / one pass |
+|---|------------|---------------|------------------|
+| 100,000 | 10.2 | 4.3 | 2.4 |
+| 200,000 | 29.8 | 6.6 | 4.5 |
+| 400,000 | 69.6 | 9.3 | 7.5 |
+| 800,000 | 152.7 | 18.7 | 8.1 |
+
+From 100,000 to 800,000 sales (8 times more data), the chain took about 15 times longer and the one pass about 4.4 times longer. An O(n²) function would have taken about 64 times longer, so neither is quadratic: both are linear in the number of operations.
+
+The chain is always slower, and the gap widens as `n` grows. A likely reason is memory: the chain allocates an array of `n` copied objects plus two more arrays, and creating and cleaning that memory costs time that the operation count does not capture. So the extra space of the chain also shows up as extra time.
+
+### Space complexity of the engine
+
+Convention: I count the memory a function creates (variables, arrays, objects), including what it returns, but not the `ventas` array it receives. `k` is the number of distinct groups (cities or products), and `n` the number of sales.
+
+| Space | Functions | Why |
+|-------|-----------|-----|
+| O(1) | `valorVenta`, `normalizar`, `totalVendido`, `unidadesVendidas`, `ventaMayor`, `ticketPromedio`, `ventasPorCiudad`, `totalCiudadUnaPasada`, `primeraVenta`, `contarVisita`, `contarComparacion`, `totalVendidoConteo`, `ventaMayorConteo` | Only a few variables: numbers, one reference to an existing sale, the counter, a temporary short string. |
+| O(1) | `totalVendidoM`, `unidadesVendidasM` | `reduce` returns one number and creates no array. |
+| O(k) | `totalPorCiudad`, `totalPorCiudadConteo` | One object with one key per distinct city, not per sale. With 4 cities it stays at 4 keys, so it is constant here; in the worst case (a different city in every sale) it would be O(n). |
+| O(k) | `unidadesPorProducto` | One key per distinct product (5 here), not per sale. |
+| O(k) | `topProductosPorValor` | An object with `p` products, then an array of `p` pairs and an array of `p` objects (`Object.entries` and `map`), and `slice` keeps the first `k`. Everything depends on the number of products, not on the number of sales. |
+| O(n) | `ventasPorCiudadM` | `filter` creates an array of up to `n` sales and `map` another of up to `n` numbers. |
+| O(n) | `ventasDelDia` | `filter` returns an array with the sales of that day, up to `n`. |
+| O(n) | `totalCiudadCadena` | Three arrays plus `n` copied objects. |
+| O(n) | `clientesRecurrentes` | The `recurrentes` array can hold up to about `n/2` customers. Its time is O(n²), but its space is only O(n). |
+
+The key point: the memory of the grouping functions depends on how many distinct groups exist, not on how many sales exist. The functions that need memory proportional to the data are the ones that create copies or filtered arrays.
+
+### Decision: which `totalCiudad` stays in the engine
+
+I keep **`totalCiudadUnaPasada`** as the engine's version. `totalCiudadCadena` stays in `analitica.js` only as a reference for the comparison.
+
+**Readability.** The chain reads like a sentence (normalize, filter, compute the value, add up), which is its best argument. But the one-pass version is also short, a single loop with one `if`, so the readability I give up is small.
+
+**Resources.** This weighs more:
+- The chain makes 4 passes, creates 3 arrays and copies `n` objects, so its space is O(n). The one pass uses O(1).
+- In my measurements the chain was 2.4 to 8.1 times slower, and the gap widened as `n` grew.
+- The marketplace server has limited memory, so reserving memory proportional to the history is a real cost.
+
+The chain would be a fine choice for small data or a one-off script, where reading it quickly matters more than saving memory. Here, resources weigh more than the little readability that is lost.
