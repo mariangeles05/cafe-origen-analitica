@@ -398,3 +398,18 @@ I keep **`totalCiudadUnaPasada`** as the engine's version. `totalCiudadCadena` s
 - The marketplace server has limited memory, so reserving memory proportional to the history is a real cost.
 
 The chain would be a fine choice for small data or a one-off script, where reading it quickly matters more than saving memory. Here, resources weigh more than the little readability that is lost.
+
+
+## Micro-challenge 8: Performance document
+
+**What I did.** Measured 17 functions with 10,000 sales and wrote `RENDIMIENTO.md` (complexity, projection to 1,000,000 sales, risks and an optimization plan).
+
+**Main finding.** `clientesRecurrentes` took 424 ms at 10,000 sales, about 270 times more than the next slowest function, and would take around 2 hours at 1,000,000. Every other report stays under 0.2 s.
+
+**Peer review.**
+
+| Reviewer | Observation | My answer |
+|----------|-------------|-----------|
+| Samuel Castaño | La proyección de 2 horas depende de los datos de prueba. ¿Cambiaría con otros datos? | Sí, los datos tienen cerca de un cliente distinto por cada 3 ventas. Con otra cantidad el tiempo cambia, aunque seguiría creciendo con n². Lo agregué al documento. |
+
+**What changed after the review.** Added a line about data shape to the projection notes in `RENDIMIENTO.md`.
