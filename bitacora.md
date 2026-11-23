@@ -264,3 +264,54 @@ For each `i` the inner loop runs `n - 1 - i` times, so the total is `(n-1) + (n-
 | 16,000 | 127,992,000 |
 
 The `n²` term dominates, so this is O(n²). Doubling `n` multiplies the comparisons by about 4: 499,500 with 1,000 sales and 1,999,000 with 2,000.
+
+### Three runs and estimates
+
+I ran `src/tiempo.js` three times and averaged each size, so one odd run does not weigh too much.
+
+| n | average time (ms) | times more than the previous n |
+|---|-------------------|--------------------------------|
+| 1,000 | 8.64 | - |
+| 2,000 | 31.47 | 3.64 |
+| 4,000 | 123.43 | 3.92 |
+| 8,000 | 550.02 | 4.46 |
+| 16,000 | 1980.16 | 3.60 |
+
+The ratios stay around 4 (average 3.9), which confirms O(n²).
+
+### Estimates from my measurements
+
+For an O(n²) function, `T(n) ≈ T(16,000) × (n / 16,000)²`, using the largest measured size as the starting point.
+
+- **100,000 sales:** `(100,000 / 16,000)² = 39.06`, so `1980.16 ms × 39.06 ≈ 77 s`. With the highest constant I measured, about 86 s. Estimate: 77 to 86 seconds, under two minutes, so I ran it.
+- **1,000,000 sales:** `(1,000,000 / 16,000)² = 3,906`, so `1980.16 ms × 3,906 ≈ 7,735 s`, about 129 minutes. With the highest constant, about 143 minutes. Estimate: roughly 2 hours. I did not run it.
+
+Going from 100,000 to 1,000,000 sales (10 times more data) means about 100 times more time, not 10.
+
+The estimate assumes the quadratic trend continues. At large sizes, memory effects can make it somewhat worse.
+
+**Real time with 100,000 sales:** 71.0 seconds  n=100000: 1:11.015 (m:ss.mmm)
+
+### Hidden cost: `includes`
+
+`recurrentes.includes(cliente)` is also a loop: it compares against the list until it finds the customer or reaches the end, so it costs up to `k`, the number of customers already in `recurrentes`. It only runs when the two customers are equal (the `&&` skips it otherwise), but then it runs for every equal pair, even if that customer is already in the list.
+
+**Typical case (my generator).** There are about `n/3` customers and about `1.5n` equal pairs, each one scanning a list that keeps growing with `n`. That extra work also grows like `n²`, so the function is still O(n²) with a bigger constant. It also explains ratios slightly above 4 in my table (4.46).
+
+**Worst case.** About `n/4` customers appear twice, and one customer has `n/2` sales, placed so that it enters `recurrentes` last. The big customer produces about `n²/8` equal pairs, and each one scans a list of about `n/4` customers. The total work is around `n³/32`, so the worst case is **O(n³)**, and doubling `n` multiplies the time by about 8 instead of 4.
+
+### Conclusion for the manager
+
+The report slows down because, to find customers who bought more than once, it takes every sale and compares it with all the other sales. It is like taking one receipt and checking every other receipt to see if the same customer appears, and then doing that for every receipt in the pile.
+
+With a few sales this is invisible, which is why the test with 12 sales looked instant. But the work does not grow at the same pace as the data, it grows much faster: if the history doubles, the report takes about 4 times longer, and if it grows 10 times, it takes about 100 times longer.
+
+These are the times I measured and estimated:
+
+| Sales in the history | Time of the report |
+|----------------------|--------------------|
+| 16,000 | about 2 seconds |
+| 100,000 | 71 seconds (measured) |
+| 1,000,000 | about 2 hours (estimated) |
+
+This can be fixed by changing how the report is calculated, so that it goes through the sales only once. 
