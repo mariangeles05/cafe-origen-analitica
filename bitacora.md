@@ -537,3 +537,70 @@ It stops at the third product and returns Origen Huila 500 g + Origen Sierra 500
 | `primerClienteUnico` | O(n) | O(c) | Two passes added together (n + n), which simplifies to O(n). The Map holds one entry per distinct customer. |
 
 The brute force `comboRegaloFuerzaBruta` is O(n²) in time and O(1) in space. The Map version trades O(n) memory for linear time. All three new functions assume that a lookup or insertion in a Map takes constant time.
+
+## Micro-challenge 11: Sliding window and two pointers
+
+**Context.** The manager wants the best week of the last month (7 consecutive days with the highest total), and corporate customers want two products that add up to at most their budget, as close as possible.
+
+### Best week: brute force
+
+`mejorSemanaBruta(dias, k)` adds every block of `k` days from scratch and keeps the largest. It returns `{ total, inicio }`, where `inicio` is the day number (1 to 30), or `null` if `k` is larger than the number of days. If two weeks tie, the first one wins.
+
+- **Time:** O((n − k + 1) × k), which is O(n × k): there are about `n` blocks and each one adds `k` days.
+- **Space:** O(1).
+
+### Best week: sliding window
+
+`mejorSemana(dias, k)` adds the first window once. After that, each step moves the window one day: it adds the day that enters and subtracts the day that leaves, so no block is ever added again from zero.
+
+- **Time:** O(n), `k` steps for the first window plus `n − k` steps of one addition and one subtraction.
+- **Space:** O(1).
+- **September result:** the best week starts on day 24 and totals 3,670 (thousand pesos).
+
+### First three window positions (k = 7)
+
+| Window | Days | Calculation | Total |
+|--------|------|-------------|-------|
+| 1 | 1 to 7 | 320 + 410 + 280 + 390 + 510 + 620 + 700 | 3,230 |
+| 2 | 2 to 8 | 3,230 − 320 (leaves) + 300 (enters) | 3,210 |
+| 3 | 3 to 9 | 3,210 − 410 (leaves) + 290 (enters) | 3,090 |
+
+
+### Best week: verification and timings
+
+Both versions return the same result with the September data (best week: starts on day 24, total 3,670 thousand pesos) and with 100,000 random days, for `k = 7` and `k = 1000`. Median of 5 runs:
+
+| k | Brute force (ms) | Sliding window (ms) |
+|---|------------------|---------------------|
+| 7 | 1.27 | 0.34 |
+| 1,000 | 106.87 | 0.28 |
+
+The brute force grows with `k` (its cost is about `n × k`), while the sliding window stays almost the same, because it only does one addition and one subtraction per step no matter how big the window is.
+
+### Closest pair under a budget: two pointers
+
+`parMasCercano(catalogo, presupuesto)` sorts a copy of the catalog by price (numeric `sort`, so the original is not modified) and puts one pointer at each end. If the sum of the two products goes over the budget, the right pointer moves left, because the right product is too expensive even with the cheapest remaining partner. If the sum fits, it keeps the pair when it is the best so far and moves the left pointer right, to try a larger sum. It stops when the pointers meet and returns the pair with the largest sum that does not exceed the budget, or `null` if there is none (including a catalog with fewer than 2 products).
+
+**Tests.** 100,000 → Filtros de papel x100 + Origen Huila 1 kg (97,000); 140,000 → Origen Sierra 500 g + Prensa francesa (exactly 140,000); 40,000 → `null`, because the cheapest pair costs 44,000; empty catalog → `null`. No result ever goes over the budget.
+
+**Pointer trace for 100,000.** Sorted prices: Filtros 18,000, Nariño 26,000, Taza 35,000, Huila 500 g 42,000, Sierra 45,000, Huila 1 kg 79,000, Prensa 95,000, Molino 120,000.
+
+| Step | Left | Right | Sum | What happens |
+|------|------|-------|-----|--------------|
+| 1 | Filtros 18,000 | Molino 120,000 | 138,000 | Over the budget: move the right pointer left. |
+| 2 | Filtros 18,000 | Prensa 95,000 | 113,000 | Over the budget: move the right pointer left. |
+| 3 | Filtros 18,000 | Huila 1 kg 79,000 | 97,000 | It fits: save it as the best so far and move the left pointer right. |
+| 4 | Nariño 26,000 | Huila 1 kg 79,000 | 105,000 | Over the budget: move the right pointer left. |
+| 5 | Nariño 26,000 | Sierra 45,000 | 71,000 | It fits but 71,000 < 97,000: keep the best and move the left pointer right. |
+| 6 | Taza 35,000 | Sierra 45,000 | 80,000 | It fits but is not better: move the left pointer right. |
+| 7 | Huila 500 g 42,000 | Sierra 45,000 | 87,000 | It fits but is not better: move the left pointer right. The pointers meet, so it stops. |
+
+Result: Filtros de papel x100 + Origen Huila 1 kg, 97,000.
+
+### Complexity summary
+
+| Function | Time | Space | Justification |
+|----------|------|-------|---------------|
+| `mejorSemanaBruta` | O(n × k) | O(1) | About `n` blocks, and each one adds `k` days. |
+| `mejorSemana` | O(n) | O(1) | One window of `k` additions plus `n − k` steps of one addition and one subtraction; it never adds a block again. |
+| `parMasCercano` | O(n log n) | O(n) | Sorting the copy costs O(n log n) and dominates; the two-pointer pass is O(n) because each step moves one pointer and they cross at most `n` times. The copy takes O(n) space. If the prices were already sorted, only the O(n) pass would remain. |

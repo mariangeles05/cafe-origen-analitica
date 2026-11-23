@@ -47,6 +47,10 @@ node src/verificar.js
 - `src/medirRecurrentes.js`: times the three versions with 1,000, 10,000 and 100,000 sales.
 - `src/catalogo.js`: the product catalog with prices.
 - `src/combos.js`: gift card combos, by brute force and with a Map.
+- `src/ventasDiarias.js`: daily sales totals for September.
+- `src/ventanas.js`: best week (brute force and sliding window) and closest pair under a budget (two pointers).
+- `src/verificarVentanas.js`: checks both best-week versions and compares their times.
+
 
 ## Data notes
 
